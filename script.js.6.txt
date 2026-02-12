@@ -1,0 +1,55 @@
+// Replace these with your actual Cloudinary details (from your Cloudinary account)
+const cloudName = 'your-cloud-name';  // e.g., 'dxyz1234' – get from Cloudinary Dashboard
+const uploadPreset = 'your-upload-preset';  // e.g., 'image-upload' – create an unsigned preset in Cloudinary Settings > Upload
+
+document.addEventListener('DOMContentLoaded', () => {
+    const uploadBtn = document.getElementById('upload-btn');
+    const imageInput = document.getElementById('image-input');
+    const imageGallery = document.getElementById('image-gallery');
+
+    // Function to upload image to Cloudinary and display it
+    function uploadToCloudinary(file) {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('upload_preset', uploadPreset);
+
+        // Send the file to Cloudinary
+        fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.secure_url) {
+                // Create and display the image from Cloudinary's URL
+                const img = document.createElement('img');
+                img.src = data.secure_url;  // Permanent URL from Cloudinary
+                img.alt = file.name;
+                imageGallery.appendChild(img);
+            } else {
+                alert('Upload failed. Check your Cloudinary settings.');
+            }
+        })
+        .catch(error => {
+            console.error('Error uploading:', error);
+            alert('Upload failed. Try again.');
+        });
+    }
+
+    // Handle upload button click
+    uploadBtn.addEventListener('click', () => {
+        const files = imageInput.files;
+        if (files.length === 0) {
+            alert('Please select at least one image to upload.');
+            return;
+        }
+        
+        // Upload each selected image
+        for (let i = 0; i < files.length; i++) {
+            uploadToCloudinary(files[i]);
+        }
+        
+        // Clear the input after upload
+        imageInput.value = '';
+    });
+});
